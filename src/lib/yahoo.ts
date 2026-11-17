@@ -34,11 +34,17 @@ function parseBars(payload: YahooChart): Bar[] {
   return bars
 }
 
-async function fetchYahoo(symbol: string, range = '5d', interval = '5m'): Promise<YahooChart> {
+async function fetchYahoo(symbol: string, range = '60d', interval = '5m'): Promise<YahooChart> {
   const encoded = encodeURIComponent(symbol)
+  const cached =
+    symbol === '^VIX'
+      ? interval === '1d'
+        ? 'vix_daily.json'
+        : 'vix.json'
+      : 'spy.json'
   const paths = [
     `/api/yahoo/v8/finance/chart/${encoded}?interval=${interval}&range=${range}`,
-    `/data/${symbol === '^VIX' ? 'vix' : 'spy'}.json`,
+    `/data/${cached}`,
   ]
 
   let lastError: unknown
@@ -71,6 +77,24 @@ export async function loadVixLast(): Promise<number | null> {
     return payload.chart.result?.[0]?.meta.regularMarketPrice ?? null
   } catch {
     return null
+  }
+}
+
+export async function loadVixDailyMap(): Promise<Record<string, number>> {
+  try {
+    const payload = await fetchYahoo('^VIX', '3mo', '1d')
+    const result = payload.chart.result?.[0]
+    const out: Record<string, number> = {}
+    if (!result) return out
+    const closes = result.indicators.quote[0].close
+    for (let i = 0; i < result.timestamp.length; i++) {
+      const c = closes[i]
+      if (c == null || Number.isNaN(c)) continue
+      out[nyDateKey(result.timestamp[i])] = c
+    }
+    return out
+  } catch {
+    return {}
   }
 }
 

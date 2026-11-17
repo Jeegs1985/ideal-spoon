@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { BacktestPanel } from './components/BacktestPanel'
 import { Chart } from './components/Chart'
 import { SettingsPanel } from './components/SettingsPanel'
+import { runBacktest, type BacktestSummary } from './lib/backtest'
 import { analyzeSession, sessionExtras } from './lib/sharkEngine'
 import { SESSION_PRESETS } from './lib/presets'
 import {
@@ -9,7 +11,13 @@ import {
   type SessionAnalysis,
   type SharkSettings,
 } from './lib/types'
-import { groupBySession, loadSpyBars, loadVixLast, nyDateKey } from './lib/yahoo'
+import {
+  groupBySession,
+  loadSpyBars,
+  loadVixDailyMap,
+  loadVixLast,
+  nyDateKey,
+} from './lib/yahoo'
 
 function fmt(n: number | null | undefined, digits = 2) {
   if (n == null || Number.isNaN(n)) return '—'
@@ -25,15 +33,25 @@ export default function App() {
   const [settings, setSettings] = useState<SharkSettings>(DEFAULT_SETTINGS)
   const [sessionKey, setSessionKey] = useState(SESSION_PRESETS[0].dateKey)
   const [now, setNow] = useState(() => Date.now())
+  const [backtest, setBacktest] = useState<BacktestSummary | null>(null)
 
   const sessions = useMemo(() => groupBySession(bars), [bars])
   const sessionKeys = useMemo(() => Object.keys(sessions).sort().reverse(), [sessions])
+  const tabKeys = useMemo(() => {
+    const pinned = SESSION_PRESETS.map((p) => p.dateKey)
+    const rest = sessionKeys.filter((k) => !pinned.includes(k)).slice(0, 6)
+    return [...pinned.filter((k) => sessionKeys.includes(k)), ...rest]
+  }, [sessionKeys])
 
   const refresh = useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
-      const [spy, vixLast] = await Promise.all([loadSpyBars(), loadVixLast()])
+      const [spy, vixLast, vixMap] = await Promise.all([
+        loadSpyBars(),
+        loadVixLast(),
+        loadVixDailyMap(),
+      ])
       setBars(spy.bars)
       setLast(spy.last)
       setVix(vixLast)
@@ -41,6 +59,7 @@ export default function App() {
       const grouped = groupBySession(spy.bars)
       const keys = Object.keys(grouped).sort().reverse()
       setSessionKey((prev) => (keys.includes(prev) ? prev : keys[0] ?? prev))
+      setBacktest(runBacktest(spy.bars, vixMap, { riskPerTrade: 500 }))
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load SPY')
     } finally {
@@ -180,23 +199,21 @@ export default function App() {
         <section className="chart-panel">
           <div className="chart-toolbar">
             <div className="session-tabs" role="tablist">
-              {(sessionKeys.length ? sessionKeys : SESSION_PRESETS.map((p) => p.dateKey)).map(
-                (key) => {
-                  const preset = SESSION_PRESETS.find((p) => p.dateKey === key)
-                  return (
-                    <button
-                      key={key}
-                      type="button"
-                      role="tab"
-                      aria-selected={sessionKey === key}
-                      className={sessionKey === key ? 'active' : ''}
-                      onClick={() => setSessionKey(key)}
-                    >
-                      {preset?.label ?? key}
-                    </button>
-                  )
-                },
-              )}
+              {(tabKeys.length ? tabKeys : SESSION_PRESETS.map((p) => p.dateKey)).map((key) => {
+                const preset = SESSION_PRESETS.find((p) => p.dateKey === key)
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    role="tab"
+                    aria-selected={sessionKey === key}
+                    className={sessionKey === key ? 'active' : ''}
+                    onClick={() => setSessionKey(key)}
+                  >
+                    {preset?.label ?? key}
+                  </button>
+                )
+              })}
             </div>
             <div className="legend-inline">
               <span className="lg call">CALL</span>
@@ -216,6 +233,8 @@ export default function App() {
         </section>
 
         <aside className="side-column">
+          <BacktestPanel summary={backtest} loading={loading} />
+
           <section className="panel playbook">
             <header>
               <h2>Playbook</h2>

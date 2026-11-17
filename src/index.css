@@ -553,6 +553,106 @@ select {
   line-height: 1.5;
 }
 
+.backtest-panel .bt-hero {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.backtest-panel .bt-hero > div,
+.bt-stats > div {
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.backtest-panel .bt-hero span,
+.bt-stats dt {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.backtest-panel .bt-hero strong {
+  display: block;
+  margin-top: 4px;
+  font-family: Syne, sans-serif;
+  font-size: 22px;
+  letter-spacing: -0.03em;
+}
+
+.backtest-panel .bt-hero em {
+  font-style: normal;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.bt-stats {
+  margin: 12px 0 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.bt-stats dd {
+  margin: 4px 0 0;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.bt-table-wrap {
+  margin-top: 14px;
+  max-height: 260px;
+  overflow: auto;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+}
+
+.bt-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.bt-table th,
+.bt-table td {
+  padding: 8px 10px;
+  text-align: left;
+  border-bottom: 1px solid rgba(148, 175, 190, 0.1);
+  font-variant-numeric: tabular-nums;
+}
+
+.bt-table th {
+  position: sticky;
+  top: 0;
+  background: #0a1a24;
+  color: var(--muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 10px;
+}
+
+.bt-note {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.up {
+  color: var(--call) !important;
+}
+
+.down {
+  color: var(--put) !important;
+}
+
 .error-banner,
 .empty {
   margin: 0;
