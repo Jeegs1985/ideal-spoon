@@ -1,32 +1,27 @@
-# React + TypeScript + Vite
+# Shark Desk
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Educational recreation of [@IncomeSharks](https://x.com/IncomeSharks)’ public **SPY 30-minute opening-range** day-trader workflow — the same style of desk he posts winning 0DTE trades from on X.
 
-Currently, two official plugins are available:
+## What it models
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+1. Build the first **30-minute** RTH range (09:30–10:00 ET)
+2. ORB candle color is a **hint** (green → call lean, red → put lean)
+3. Fire **CALL / PUT** on a **confirmed break** of that range (a failed ORB can flip — e.g. Nov 17 green ORB → PUT breakdown into the $735 put wall)
+4. Project **Shark** (first TP), **OR**, and **Whale** targets; snap Whale toward the gamma wall
+5. Overlay call/put walls, weekly open / prev-week low, EMA + outer bands, VIX regime
 
-## React Compiler
+Not the proprietary Slice indicator. Not financial advice.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Run
 
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm install
+npm run refresh-data   # pulls SPY + VIX 5m from Yahoo into public/data
+npm run dev
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Open `http://127.0.0.1:5173`.
+
+## Stack
+
+Vite + React + TradingView Lightweight Charts. Session presets for the Nov 16 whale / Nov 17 $735 gamma posts.
